@@ -1,0 +1,36 @@
+flutter_native_splash:
+	color: "#ffffff"
+    image: assets/images/logo.png
+    
+    # 안드로이드12버전 이상은 따로 설정 해줘야 한다.
+    android_12:
+    	image: assets/images/android12_log.png
+    
+    # 그 외에 빌드 환경별로 설정 할 수 있다.
+    # image는 가운데 앱 로고, brand_image는 하단 브랜드 로고이다.
+    
+    #color_android: "#42a5f5"
+    #color_dark_android: "#042a49"
+    #color_ios: "#42a5f5"
+    #color_dark_ios: "#042a49"
+    #color_web: "#42a5f5"
+    #color_dark_web: "#042a49"
+    #image_android: assets/splash-android.png
+    #image_dark_android: assets/splash-invert-android.png
+    #image_ios: assets/splash-ios.png
+    #image_dark_ios: assets/splash-invert-ios.png
+    #image_web: assets/splash-web.gif
+    #image_dark_web: assets/splash-invert-web.gif
+    #background_image_android: "assets/background-android.png"
+    #background_image_dark_android: "assets/dark-background-android.png"
+    #background_image_ios: "assets/background-ios.png"
+    #background_image_dark_ios: "assets/dark-background-ios.png"
+    #background_image_web: "assets/background-web.png"
+    #background_image_dark_web: "assets/dark-background-web.png"
+    #branding_android: images/logo.png
+    #branding_dark_android: assets/dart_dark-android.png
+    #branding_ios: assets/brand-ios.png
+    #branding_dark_ios: assets/dart_dark-ios.png
+    #branding_web: assets/images/logo.png
+    #branding_dark_web: assets/dart_dark-web.gif
+출처: https://baejangho.com/entry/Flutter-Splash-Screen [호짱의 개발 블로그:티스토리]
