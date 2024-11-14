@@ -34,7 +34,9 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
-  flutter_native_splash: ^2.4.2
+  flutter_native_splash: ^2.4.2 #launchscreen 패키지
+  flutter_signin_button: ^2.0.0 #signup 패키지
+  logging: ^1.0.2 #print문등의 로그 최적화를 위한 로깅 패키지
 
 dev_dependencies:
   flutter_test:
