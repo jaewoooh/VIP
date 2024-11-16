@@ -1,5 +1,5 @@
-# Created by https://www.toptal.com/developers/gitignore/api/dart,swift,xcode,flutter,android,androidstudio
-# Edit at https://www.toptal.com/developers/gitignore?templates=dart,swift,xcode,flutter,android,androidstudio
+# Created by https://www.toptal.com/developers/gitignore/api/dart,swift,flutter,android,androidstudio
+# Edit at https://www.toptal.com/developers/gitignore?templates=dart,swift,flutter,android,androidstudio
 
 ### Android ###
 # Gradle files
@@ -67,6 +67,8 @@ doc/api/
 *.js.deps
 *.js.map
 
+.flutter-plugins
+.flutter-plugins-dependencies
 
 ### Dart Patch ###
 # dotenv environment variables file
@@ -80,8 +82,6 @@ doc/api/
 .pub/
 coverage/
 lib/generated_plugin_registrant.dart
-.flutter-plugins
-.flutter-plugins-dependencies
 # For library packages, don’t commit the pubspec.lock file.
 # Regenerating the pubspec.lock file lets you test your package against the latest compatible versions of its dependencies.
 # See https://dart.dev/guides/libraries/private-files#pubspeclock
@@ -216,19 +216,6 @@ fastlane/test_output
 
 iOSInjectionProject/
 
-### Xcode ###
-
-## Xcode 8 and earlier
-
-### Xcode Patch ###
-*.xcodeproj/*
-!*.xcodeproj/project.pbxproj
-!*.xcodeproj/xcshareddata/
-!*.xcodeproj/project.xcworkspace/
-!*.xcworkspace/contents.xcworkspacedata
-/*.gcno
-**/xcshareddata/WorkspaceSettings.xcsettings
-
 ### AndroidStudio ###
 # Covers files to be ignored for android development using Android Studio.
 
@@ -351,4 +338,4 @@ fabric.properties
 
 !/gradle/wrapper/gradle-wrapper.jar
 
-# End of https://www.toptal.com/developers/gitignore/api/dart,swift,xcode,flutter,android,androidstudio
+# End of https://www.toptal.com/developers/gitignore/api/dart,swift,flutter,android,androidstudio
