@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false, // 디버그 배너 제거
-      home: LoginScreen(),     // MainNavigation 위젯을 홈으로 설정
+      home: MainNavigation(),     // MainNavigation 위젯을 홈으로 설정
     );
   }
 }
