@@ -5,12 +5,8 @@ class StudyRoomScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Study Room"),
-        backgroundColor: Colors.deepPurple,
-      ),
-      body: const Center(
+    return const Scaffold(
+      body: Center(
         child: Text(
           "Welcome to Study Room",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),

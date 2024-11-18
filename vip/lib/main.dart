@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:motion_tab_bar_v2/motion-tab-controller.dart';
+import 'package:vip/Login&Register/login_screen.dart';
 import 'custom_tabbar.dart';
 import 'Home/home.dart';
 import 'StudyRoom/study_room.dart';
@@ -26,7 +27,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false, // 디버그 배너 제거
-      home: MainNavigation(),     // MainNavigation 위젯을 홈으로 설정
+      home: LoginScreen(),     // MainNavigation 위젯을 홈으로 설정
     );
   }
 }
