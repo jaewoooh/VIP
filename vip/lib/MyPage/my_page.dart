@@ -1,3 +1,4 @@
+//mypage 총합
 import 'package:flutter/material.dart';
 import 'interview_records.dart';
 import 'favorites.dart';
