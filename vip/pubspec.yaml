@@ -31,6 +31,9 @@ dependencies:
   flutter:
     sdk: flutter
 
+  flutter_localizations:
+    sdk: flutter #한글 포맷 사용
+
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
@@ -39,6 +42,7 @@ dependencies:
   logging: ^1.0.2 #print문등의 로그 최적화를 위한 로깅 패키지
   motion_tab_bar: ^2.0.4
   motion_tab_bar_v2: ^0.3.0
+  intl: ^0.19.0 # 날짜 포멧
 
 dev_dependencies:
   flutter_test:
