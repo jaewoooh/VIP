@@ -45,7 +45,7 @@ class _FavoritesState extends State<Favorites> {
     // 새로운 날짜가 선택되었을 경우 상태 업데이트
     if (picked != null && picked != _selectedDate) {
       setState(() {
-        _selectedDate = picked;
+        _selectedDate = picked; // 선택된 날짜를 업데이트
       });
     }
   }
@@ -87,7 +87,15 @@ class _FavoritesState extends State<Favorites> {
             itemBuilder: (context, index) {
               final item = widget.favoriteItems[index]; // 현재 항목
               return ListTile(
-                leading: const Icon(Icons.favorite, color: Colors.red), // 즐겨찾기 아이콘
+                // 왼쪽의 하트 아이콘
+                leading: IconButton(
+                  icon: const Icon(Icons.favorite, color: Colors.red),
+                  onPressed: () {
+                    setState(() {
+                      widget.favoriteItems.removeAt(index); // 항목 삭제
+                    });
+                  },
+                ),
                 title: Text(
                   item['title']!, // 즐겨찾기 제목
                   style: const TextStyle(color: Colors.white),
