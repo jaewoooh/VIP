@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:motion_tab_bar_v2/motion-tab-controller.dart';
-import 'package:vip/Login&Register/login_screen.dart';
+// import 'package:vip/Login&Register/login_screen.dart';
 import 'custom_tabbar.dart';
 import 'Home/home.dart';
 import 'StudyRoom/study_room.dart';
