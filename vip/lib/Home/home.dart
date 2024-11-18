@@ -5,16 +5,28 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 공통 스타일 및 속성 정의
+    const TextStyle titleStyle = TextStyle(
+      fontSize: 45,
+      fontWeight: FontWeight.bold,
+      color: Colors.white,
+    );
+
+    const TextStyle descriptionStyle = TextStyle(
+      fontSize: 15,
+      color: Colors.grey,
+      height: 1.5,
+    );
+
     return Scaffold(
       body: Stack(
         children: [
           // 배경 이미지
-          SizedBox.expand(
+          Positioned.fill(
             child: Image.asset(
-              'assets/home.png', // 배경 이미지 경로
-              fit: BoxFit.cover, // 이미지 크기 맞춤
+              'assets/home.png',
+              fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
-                // 이미지 로드 실패 시 대체 위젯
                 return const Center(
                   child: Text(
                     'Error loading image',
@@ -28,119 +40,54 @@ class HomeScreen extends StatelessWidget {
               },
             ),
           ),
-          // 텍스트와 버튼 배치
+          // 콘텐츠
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 상단 빈 공간을 더 크게 만들어 텍스트를 아래로 이동
-                const SizedBox(height: 380), // 원하는 만큼 높이 추가
-                // 텍스트 콘텐츠
-                Align(
-                  alignment: Alignment.centerLeft, // 텍스트를 왼쪽 정렬
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start, // 왼쪽 정렬
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // 제목 텍스트
-                      const Text(
-                        "AI 면접 게임\n"
-                        "시작하기",
-                        style: TextStyle(
-                          fontSize: 45, // 제목 글자 크기
-                          fontWeight: FontWeight.bold, // 글자 굵기
-                          color: Colors.white, // 글자 색상
-                        ),
-                      ),
-                      const SizedBox(height: 15), // 제목과 설명 텍스트 간격
-                      // 설명 텍스트
-                      const Text(
-                        "다음 화면에서 원하는 직종을 선택한 후,\n"
-                        "게임을 시작하세요. 각 단계에서는 다양한\n"
-                        "면접과 연결을 진행합니다.",
-                        style: TextStyle(
-                          fontSize: 15, // 설명 글자 크기
-                          color: Colors.grey, // 글자 색상
-                          height: 1.5, // 줄 간격
-                        ),
-                      ),
-                      const SizedBox(height: 24), // 설명 텍스트와 페이지네이션 간격
-                      // 페이지네이션 (하얀 점 + 회색 점)
-                      Row(
-                        children: [
-                          Container(
-                            width: 20,
-                            height: 5,
-                            decoration: BoxDecoration(
-                              color: Colors.white, // 활성화된 페이지네이션 색상
-                              borderRadius: BorderRadius.circular(3),
-                            ),
-                          ),
-                          const SizedBox(width: 8), // 점 사이 간격
-                          Container(
-                            width: 5,
-                            height: 5,
-                            decoration: BoxDecoration(
-                              color: Colors.grey, // 비활성화된 페이지네이션 색상
-                              borderRadius: BorderRadius.circular(3),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            width: 5,
-                            height: 5,
-                            decoration: BoxDecoration(
-                              color: Colors.grey, // 비활성화된 페이지네이션 색상
-                              borderRadius: BorderRadius.circular(3),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                const SizedBox(height: 350), // 상단 여백 조정
+                // 제목 텍스트
+                const Text("AI 면접 게임\n시작하기", style: titleStyle),
+                const SizedBox(height: 15),
+                // 설명 텍스트
+                const Text(
+                  "다음 화면에서 원하는 직종을 선택한 후,\n"
+                  "게임을 시작하세요. 각 단계에서는 다양한\n"
+                  "면접과 연결을 진행합니다.",
+                  style: descriptionStyle,
                 ),
-                const SizedBox(height: 50), // 간격을 조정하여 버튼 위치 조절
+                const SizedBox(height: 24),
+                // 페이지네이션
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    _buildPaginationDot(isActive: true),
+                    const SizedBox(width: 8),
+                    _buildPaginationDot(),
+                    const SizedBox(width: 8),
+                    _buildPaginationDot(),
+                  ],
+                ),
+                const SizedBox(height: 50), // 여백 조정
                 // 하단 버튼
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.center, // 가운데 정렬
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // Next 버튼
-                    ElevatedButton(
-                      onPressed: () {
-                        debugPrint("Next Pressed");
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: Colors.black,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15.0),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 50,
-                          vertical: 16,
-                        ),
-                      ),
-                      child: const Text('Next'),
+                    _buildButton(
+                      label: 'Next',
+                      backgroundColor: Colors.white,
+                      textColor: Colors.black,
+                      onPressed: () => debugPrint("Next Pressed"),
                     ),
-                    // 버튼 사이 간격 좁히기
-                    const SizedBox(width: 80), // 버튼 간격 설정
+                    const SizedBox(width: 80), // 버튼 간격
                     // Skip 버튼
-                    ElevatedButton(
-                      onPressed: () {
-                        debugPrint("Skip Pressed");
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xff5500AA),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15.0),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 50,
-                          vertical: 16,
-                        ),
-                      ),
-                      child: const Text('Skip'),
+                    _buildButton(
+                      label: 'Skip',
+                      backgroundColor: const Color(0xff5500AA),
+                      textColor: Colors.white,
+                      onPressed: () => debugPrint("Skip Pressed"),
                     ),
                   ],
                 ),
@@ -149,6 +96,42 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  // 페이지네이션 점 빌더
+  Widget _buildPaginationDot({bool isActive = false}) {
+    return Container(
+      width: isActive ? 20 : 5,
+      height: 5,
+      decoration: BoxDecoration(
+        color: isActive ? Colors.white : Colors.grey,
+        borderRadius: BorderRadius.circular(3),
+      ),
+    );
+  }
+
+  // 버튼 위젯 빌더
+  Widget _buildButton({
+    required String label,
+    required Color backgroundColor,
+    required Color textColor,
+    required VoidCallback onPressed,
+  }) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: backgroundColor,
+        foregroundColor: textColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15.0),
+        ),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 50,
+          vertical: 16,
+        ),
+      ),
+      child: Text(label),
     );
   }
 }
