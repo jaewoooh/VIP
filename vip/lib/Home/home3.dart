@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 
 class Home3Screen extends StatefulWidget {
@@ -12,6 +13,9 @@ class _Home3ScreenState extends State<Home3Screen>
   late AnimationController _controller;
   late Animation<double> _scaleAnimation; // 크기 변화 애니메이션
   late Animation<double> _opacityAnimation; // 투명도 변화 애니메이션
+
+  int countdownValue = 0; // 카운트다운 값
+  bool isCountingDown = false; // 카운트다운 상태 확인
 
   @override
   void initState() {
@@ -40,6 +44,26 @@ class _Home3ScreenState extends State<Home3Screen>
     super.dispose();
   }
 
+  void startCountdown() {
+    setState(() {
+      countdownValue = 10; // 초기값 설정
+      isCountingDown = true; // 카운트다운 상태 시작
+    });
+
+    Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (countdownValue > 0) {
+        setState(() {
+          countdownValue--;
+        });
+      } else {
+        timer.cancel(); // 카운트다운 완료 시 타이머 정지
+        setState(() {
+          isCountingDown = false; // 카운트다운 상태 종료
+        });
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -54,119 +78,124 @@ class _Home3ScreenState extends State<Home3Screen>
             ),
           ),
           SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0), // 좌우 패딩
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start, // 왼쪽 정렬
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.white), // 뒤로가기 아이콘
-                        onPressed: () {
-                          Navigator.pop(context); // 이전 화면으로 이동
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0), // 좌우 패딩
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start, // 왼쪽 정렬
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back, color: Colors.white), // 뒤로가기 아이콘
+                          onPressed: () {
+                            Navigator.pop(context); // 이전 화면으로 이동
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 30), // 뒤로가기 버튼 아래 여백
+
+                    // 타이틀 텍스트
+                    const Align(
+                      alignment: Alignment.center,
+                      child: Text(
+                        "인터뷰 시작 전",
+                        style: TextStyle(
+                          fontSize: 50,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // 설명 텍스트
+                    const Align(
+                      alignment: Alignment.center,
+                      child: Text(
+                        "목소리가 잘 인식되는지\n 확인해 볼게요!",
+                        style: TextStyle(
+                          fontSize: 20,
+                          color: Colors.grey,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+
+                    const SizedBox(height: 100), // 타이틀과 애니메이션 간 간격
+
+                    // 애니메이션 이미지 영역
+                    Align(
+                      alignment: Alignment.center,
+                      child: AnimatedBuilder(
+                        animation: _controller,
+                        builder: (context, child) {
+                          return Transform.scale(
+                            scale: _scaleAnimation.value, // 크기 변화 애니메이션
+                            child: Opacity(
+                              opacity: _opacityAnimation.value, // 투명도 변화 애니메이션
+                              child: child,
+                            ),
+                          );
                         },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 30), // 뒤로가기 버튼 아래 여백
-
-                  // 타이틀 텍스트
-                  const Align(
-                    alignment: Alignment.center,
-                    child: Text(
-                      "인터뷰 시작 전",
-                      style: TextStyle(
-                        fontSize: 50,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // 설명 텍스트
-                  const Align(
-                    alignment: Alignment.center,
-                    child: Text(
-                      "목소리가 잘 인식되는지\n 확인해 볼게요!",
-                      style: TextStyle(
-                        fontSize: 20,
-                        color: Colors.grey,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-
-                  const SizedBox(height: 100), // 타이틀과 애니메이션 간 간격
-
-                  // 애니메이션 이미지 영역
-                  Align(
-                    alignment: Alignment.center,
-                    child: AnimatedBuilder(
-                      animation: _controller,
-                      builder: (context, child) {
-                        return Transform.scale(
-                          scale: _scaleAnimation.value, // 크기 변화 애니메이션
-                          child: Opacity(
-                            opacity: _opacityAnimation.value, // 투명도 변화 애니메이션
-                            child: child,
+                        child: SizedBox(
+                          height: 200,
+                          width: 200,
+                          child: Image.asset(
+                            'assets/interview_animation.png', // 애니메이션 이미지 경로
+                            fit: BoxFit.contain,
                           ),
-                        );
-                      },
-                      child: SizedBox(
-                        height: 200,
-                        width: 200,
-                        child: Image.asset(
-                          'assets/interview_animation.png', // 애니메이션 이미지 경로
-                          fit: BoxFit.contain,
                         ),
                       ),
                     ),
-                  ),
 
-                  const SizedBox(height: 140), // 이미지와 페이지네이션 간 간격
+                    const SizedBox(height: 60), // 이미지와 카운트다운 간 간격
 
-                  // 페이지네이션 점 표시
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildPaginationDot(isActive: false),
-                      const SizedBox(width: 8),
-                      _buildPaginationDot(isActive: false),
-                      const SizedBox(width: 8),
-                      _buildPaginationDot(isActive: true),
-                    ],
-                  ),
-
-                  const SizedBox(height: 40),
-
-                  // 음성 입력 시작 버튼
-                  Align(
-                    alignment: Alignment.center,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        debugPrint("음성 입력 시작");
-                      },
-                      icon: const Icon(Icons.mic, color: Colors.white),
-                      label: const Text(
-                        "음성입력 시작",
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xff5500AA),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 100,
-                          vertical: 16,
+                    // 카운트다운 텍스트
+                    if (isCountingDown)
+                      Align(
+                        alignment: Alignment.center,
+                        child: Text(
+                          "$countdownValue",
+                          style: const TextStyle(
+                            fontSize: 50,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                          ),
                         ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
+                      ),
+
+                    const SizedBox(height: 100),
+
+                    // 음성 입력 시작 버튼
+                    Align(
+                      alignment: Alignment.center,
+                      child: ElevatedButton.icon(
+                        onPressed: isCountingDown
+                            ? null // 카운트다운 중에는 버튼 비활성화
+                            : startCountdown, // 버튼 클릭 시 카운트다운 시작
+                        icon: const Icon(Icons.mic, color: Colors.white),
+                        label: const Text(
+                          "음성입력 시작",
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xff5500AA),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 100,
+                            vertical: 16,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 20), // 추가 여백
+                  ],
+                ),
               ),
             ),
           ),
@@ -174,16 +203,7 @@ class _Home3ScreenState extends State<Home3Screen>
       ),
     );
   }
-
-  /// 페이지네이션 점 빌더 함수
-  Widget _buildPaginationDot({bool isActive = false}) {
-    return Container(
-      width: isActive ? 20 : 5,
-      height: 5,
-      decoration: BoxDecoration(
-        color: isActive ? Colors.white : Colors.grey,
-        borderRadius: BorderRadius.circular(3),
-      ),
-    );
-  }
 }
+
+// 음성 테스트 기능 넣어야함
+// 테스트 후 알림 기능 넣어야함 (시작하기 버튼 누르면 타이머 페이지로 이동 구현해야함 (game_timer.dart))
