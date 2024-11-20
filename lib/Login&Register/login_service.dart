@@ -8,7 +8,7 @@ import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import '../main.dart';
+import '../main_navigation.dart';
 
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -20,6 +20,7 @@ final GoogleSignIn googleSignIn = GoogleSignIn(
   ],
 );
 User? _user;
+
 Future<void> signInWithGoogle(BuildContext context) async {
   try {
     final currentUser = FirebaseAuth.instance.currentUser;

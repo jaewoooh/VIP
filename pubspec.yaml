@@ -51,6 +51,7 @@ dependencies:
   intl: ^0.19.0 # 날짜 포멧
   video_player: ^2.0.20
   speech_to_text: ^7.0.0
+  flame: ^1.21.0
 
 dev_dependencies:
   flutter_test:
@@ -79,14 +80,28 @@ flutter:
   # assets:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
-assets :
-  - assets/launchscreen2.png
-  - assets/appicon.png
-  - assets/launchscreen_android.png
-  - assets/home.png
-  - assets/button_icon.png
-  - assets/home3_background.png
-  - assets/interview_animation.png
+
+  assets :
+    - assets/launchscreen2.png
+    - assets/appicon.png
+    - assets/launchscreen_android.png
+    - assets/home.png
+    - assets/button_icon.png
+    - assets/home3_background.png
+    - assets/interview_animation.png
+    - assets/character(1).png
+    - assets/character(2).png
+    - assets/character(3).png
+    - assets/character(4).png
+    - assets/character(5).png
+    - assets/character(6).png
+    - assets/logo.png
+    - assets/game2_bubble.png
+    - assets/lv1_t.png
+    - assets/lv2_t.png
+    - assets/lv3_t.png
+    - assets/lv4_t.png
+    - assets/screen_on.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 
