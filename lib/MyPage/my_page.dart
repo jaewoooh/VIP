@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:vip/Login&Register/login.dart'; // 로그인 화면이 있는 파일 import 필요
 import 'interview_records.dart';
 import 'favorites.dart';
 
@@ -20,6 +21,21 @@ class _MyPageScreenState extends State<MyPageScreen> {
     setState(() {
       _favoriteItems.add({'title': title, 'subtitle': subtitle});
     });
+  }
+
+  // 로그아웃 메서드
+  Future<void> _logout(BuildContext context) async {
+    try {
+      await FirebaseAuth.instance.signOut(); // Firebase 로그아웃
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const Login()), // 로그인 화면으로 이동
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("로그아웃 중 오류 발생: $e")),
+      );
+    }
   }
 
   @override
@@ -45,9 +61,9 @@ class _MyPageScreenState extends State<MyPageScreen> {
                     ),
                   ),
                   TextButton(
-                    onPressed: () {}, // 콜백 추가
+                    onPressed: () => _logout(context), // 로그아웃 메서드 실행
                     child: const Text(
-                      "change",
+                      "로그아웃",
                       style: TextStyle(
                         color: Colors.orange,
                         fontWeight: FontWeight.bold,

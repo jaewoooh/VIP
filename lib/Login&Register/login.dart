@@ -145,10 +145,10 @@ class _LoginScreenState extends State<LoginScreen> {
         SizedBox(
           width: double.infinity,
           child: SignInButton(
-            Buttons.Apple,
-            text: "Login with Apple",
+            Buttons.GitHub,
+            text: "Login with GitHub",
             onPressed: () {
-              debugPrint("Apple Login Pressed");
+              signInWithGitHub(context);
             },
           ),
         ),

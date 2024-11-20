@@ -10,8 +10,67 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '../main_navigation.dart';
 
-
 final FirebaseAuth _auth = FirebaseAuth.instance;
+
+// GitHub 로그인 함수
+Future<void> signInWithGitHub(BuildContext context) async {
+  try {
+    final currentUser = FirebaseAuth.instance.currentUser;
+
+    // Firebase에서 현재 사용자가 유효한지 확인
+    if (currentUser != null) {
+      // Firebase에서 사용자 데이터를 새로 고침
+      await currentUser.reload();
+      final refreshedUser = FirebaseAuth.instance.currentUser;
+
+      if (refreshedUser == null || refreshedUser.isAnonymous) {
+        // 삭제되었거나 유효하지 않은 사용자일 경우 로그아웃 처리
+        await FirebaseAuth.instance.signOut();
+      } else {
+        // 사용자 데이터가 유효하다면 MainNavigation으로 전환
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MainNavigation()),
+        );
+        return;
+      }
+    }
+
+    // GitHub OAuth Provider 생성
+    final GithubAuthProvider githubProvider = GithubAuthProvider();
+
+    // Firebase 인증 (GitHub OAuth)
+    final UserCredential userCredential = await FirebaseAuth.instance.signInWithProvider(githubProvider);
+
+    // 로그인 성공 시 사용자 정보 가져오기
+    final User? user = userCredential.user;
+    if (user != null) {
+      debugPrint("GitHub 로그인 성공: ${user.displayName}");
+      debugPrint("사용자 UID: ${user.uid}");
+      debugPrint("사용자 이메일: ${user.email}");
+      debugPrint("사용자 프로필 사진 URL: ${user.photoURL}");
+
+      // 성공 시 MainNavigation으로 전환
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MainNavigation()),
+      );
+    }
+  } catch (e) {
+    debugPrint("GitHub Sign-In Error: $e");
+
+    // 오류 발생 시 사용자에게 알림
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("GitHub Sign-In failed: $e")),
+    );
+  }
+}
+
+
+Future<void> signOut() async {
+  await _auth.signOut();
+  debugPrint("로그아웃 완료");
+}
 final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 final GoogleSignIn googleSignIn = GoogleSignIn(
   scopes: [

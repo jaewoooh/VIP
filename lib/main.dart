@@ -17,6 +17,7 @@ Future<void> main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  //await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
 
   // 초기화 작업
   await Future.delayed(const Duration(seconds: 2));
