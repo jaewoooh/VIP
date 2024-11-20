@@ -10,8 +10,6 @@ import '../main.dart';
 import 'login_service.dart';
 import 'register.dart';
 
-
-
 class Login extends StatelessWidget {
   const Login({super.key});
 
