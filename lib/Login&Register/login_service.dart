@@ -66,7 +66,6 @@ Future<void> signInWithGitHub(BuildContext context) async {
   }
 }
 
-
 Future<void> signOut() async {
   await _auth.signOut();
   debugPrint("로그아웃 완료");
