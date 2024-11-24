@@ -1,8 +1,118 @@
 import 'package:flutter/material.dart';
-import 'package:vip/main_navigation.dart';
+import 'package:vip/openai_api_service.dart';
 
-class Test1Page extends StatelessWidget {
+class Test1Page extends StatefulWidget {
   const Test1Page({super.key});
+
+  @override
+  _Test1PageState createState() => _Test1PageState();
+}
+
+class _Test1PageState extends State<Test1Page> {
+  String interviewQuestion = "여기에 면접 질문 내용이 표시됩니다."; // 초기 텍스트
+  String userResponse = ""; // 사용자의 입력값 저장
+  bool isLoading = false;
+  bool isResponseSubmitting = false;
+
+  final OpenAIService openAIService = OpenAIService(); // OpenAIService 인스턴스 생성
+  final TextEditingController responseController = TextEditingController(); // 텍스트 입력 관리
+
+  // 면접 질문 업데이트 함수
+  Future<void> fetchInterviewQuestion() async {
+    if (!mounted) return;
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final question = await openAIService.generateInterviewQuestion();
+      if (mounted) {
+        setState(() {
+          interviewQuestion = question;
+        });
+      }
+    } catch (error) {
+      debugPrint("API 호출 실패: $error");
+      if (mounted) {
+        setState(() {
+          interviewQuestion = "질문을 생성하는 데 실패했습니다. 다시 시도해주세요.";
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
+  }
+
+  // 응답 제출 함수
+  Future<void> submitResponse() async {
+    if (!mounted) return;
+
+    final response = responseController.text.trim(); // 사용자 입력값 가져오기
+    if (response.isEmpty) return;
+
+    setState(() {
+      isResponseSubmitting = true;
+    });
+
+    try {
+      // OpenAIService를 사용하여 응답 전송
+      final result = await openAIService.evaluateResponse(response, interviewQuestion);
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: const Text("평가 결과"),
+              content: Text(result['feedback'] as String), // Map에서 feedback 값을 가져옴
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text("확인"),
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } catch (error) {
+      debugPrint("응답 처리 실패: $error");
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: const Text("오류"),
+              content: const Text("응답을 처리하는 데 실패했습니다. 다시 시도해주세요."),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text("확인"),
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          isResponseSubmitting = false;
+          responseController.clear(); // 입력 필드 초기화
+        });
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchInterviewQuestion();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -11,96 +121,116 @@ class Test1Page extends StatelessWidget {
         children: [
           // 배경 이미지
           Positioned.fill(
-            child: Image.asset(
-              'assets/home3_background.png', // 배경 이미지 경로
-              fit: BoxFit.cover, // 화면을 꽉 채우기
+            child: Stack(
+              children: [
+                Image.asset(
+                  'assets/home3_background.png',
+                  fit: BoxFit.cover,
+                ),
+                Container(
+                  color: Colors.black.withOpacity(0.4),
+                ),
+              ],
             ),
           ),
           // 뒤로가기 버튼
           Positioned(
-            top: 40, // 화면 상단에서 약간 아래
-            left: 20, // 화면 좌측 여백
+            top: 40,
+            left: 20,
             child: GestureDetector(
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const MainNavigation()),
-                );
+                Navigator.pop(context);
               },
               child: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.5), // 반투명 배경
-                  shape: BoxShape.circle, // 원형 버튼
+                  color: Colors.black.withOpacity(0.5),
+                  shape: BoxShape.circle,
                 ),
                 child: const Icon(
-                  Icons.arrow_back, // 뒤로가기 아이콘
-                  color: Colors.white, // 아이콘 색상
-                  size: 24, // 아이콘 크기
+                  Icons.arrow_back,
+                  color: Colors.white,
+                  size: 24,
                 ),
               ),
             ),
           ),
           // 캐릭터 이미지
           Positioned(
-            top: MediaQuery.of(context).size.height * 0.12, // 상단 여백 조정
-            left: MediaQuery.of(context).size.width * 0.5 - 210, // 중앙 배치
+            top: MediaQuery.of(context).size.height * 0.12,
+            left: MediaQuery.of(context).size.width * 0.5 - 210,
             child: Image.asset(
-              'assets/character(1).png', // 캐릭터 이미지 경로
-              width: 420, // 이미지 너비
-              height: 420, // 이미지 높이
+              'assets/character(1).png',
+              width: 420,
+              height: 420,
             ),
           ),
           // 대화 상자
           Positioned(
-            bottom: MediaQuery.of(context).size.height * 0.13, // 하단에서 위로 올림
-            left: 20, // 좌측 여백
-            right: 20, // 우측 여백
+            bottom: MediaQuery.of(context).size.height * 0.3,
+            left: 20,
+            right: 20,
             child: Container(
-              height: 300, // 대화 상자 높이
+              height: 300,
               decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 230, 230, 230), // 대화 상자 배경색
-                borderRadius: BorderRadius.circular(20), // 둥근 모서리
+                color: const Color.fromARGB(255, 230, 230, 230),
+                borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.2), // 그림자 색상
-                    offset: const Offset(2, 2), // 그림자 위치
-                    blurRadius: 6, // 그림자 흐림
+                    color: Colors.black.withOpacity(0.2),
+                    offset: const Offset(2, 2),
+                    blurRadius: 6,
                   ),
                 ],
               ),
-              child: const Padding(
-                padding: EdgeInsets.all(16.0), // 내부 여백
-                child: Text(
-                  '여기에 면접 질문 내용이 표시됩니다.', // 대화 내용
-                  style: TextStyle(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: isLoading
+                    ? const Center(
+                  child: CircularProgressIndicator(),
+                )
+                    : Text(
+                  interviewQuestion,
+                  style: const TextStyle(
                     fontSize: 16,
-                    color: Colors.black87, // 텍스트 색상
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
                   ),
                 ),
               ),
             ),
           ),
-          // 마이크 버튼
+          // 텍스트 입력 및 제출 버튼
           Positioned(
-            bottom: 35, // 하단에서 약간 위로
-            right: MediaQuery.of(context).size.width * 0.5 - 35, // 중앙 정렬
+            bottom: MediaQuery.of(context).size.height * 0.1,
+            left: 20,
+            right: 20,
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: responseController,
+                    decoration: const InputDecoration(
+                      hintText: "답변을 입력하세요",
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                ElevatedButton(
+                  onPressed: isResponseSubmitting ? null : submitResponse,
+                  child: const Text("제출"),
+                ),
+              ],
+            ),
+          ),
+          // 새 질문 버튼
+          Positioned(
+            bottom: MediaQuery.of(context).size.height * 0.05,
+            left: MediaQuery.of(context).size.width * 0.5 - 40,
             child: ElevatedButton(
-              onPressed: () {
-                // 마이크 버튼 클릭 시 동작
-                
-              },
-              style: ElevatedButton.styleFrom(
-                shape: const CircleBorder(), // 원형 버튼
-                padding: const EdgeInsets.all(15), // 버튼 크기
-                backgroundColor: const Color.fromARGB(255, 128, 128, 128), // 버튼 색상
-                elevation: 5, // 버튼 그림자
-              ),
-              child: const Icon(
-                Icons.mic, // 마이크 아이콘
-                color: Colors.white, // 아이콘 색상
-                size: 30, // 아이콘 크기
-              ),
+              onPressed: isLoading ? null : fetchInterviewQuestion,
+              child: const Text("새 질문"),
             ),
           ),
         ],
