@@ -1,3 +1,4 @@
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:vip/MyPage/videoplayer.dart';
@@ -38,8 +39,8 @@ class _InterviewRecordsState extends State<InterviewRecords> {
       setState(() {
         _videos = snapshot.docs.map((doc) {
           final data = doc.data();
-          debugPrint('문서 데이터: $data');
           return {
+            'id': doc.id, // 문서 ID 추가
             'videoUrl': data['videoUrl'],
             'recordedDate': data['recordedDate'],
             'uploadedAt': data['uploadedAt'],
@@ -49,6 +50,66 @@ class _InterviewRecordsState extends State<InterviewRecords> {
     } catch (e) {
       debugPrint('Firestore 데이터 가져오기 오류: $e');
     }
+  }
+
+  Future<void> deleteVideo(String documentId, String videoUrl) async {
+    try {
+      // 1. Firestore에서 메타데이터 삭제
+      await FirebaseFirestore.instance
+          .collection('Users')
+          .doc(widget.userId)
+          .collection('videos')
+          .doc(documentId)
+          .delete();
+      debugPrint("Firestore 문서 삭제 완료: $documentId");
+
+      // 2. Firebase Storage에서 실제 영상 파일 삭제
+      final storageRef = FirebaseStorage.instance.refFromURL(videoUrl);
+      await storageRef.delete();
+      debugPrint("Firebase Storage 영상 삭제 완료: $videoUrl");
+
+      // 성공 메시지
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('영상이 삭제되었습니다.')),
+      );
+
+      // UI 업데이트
+      setState(() {
+        _videos.removeWhere((video) => video['id'] == documentId);
+      });
+    } catch (e) {
+      debugPrint('영상 삭제 중 오류 발생: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('영상 삭제 중 문제가 발생했습니다.')),
+      );
+    }
+  }
+
+  Future<void> _confirmDeletion(
+      BuildContext context, String documentId, String videoUrl) async {
+    // 삭제 확인 다이얼로그
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('삭제 확인'),
+          content: const Text('정말로 이 영상을 삭제하시겠습니까?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(), // 취소 버튼
+              child: const Text('취소'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop(); // 다이얼로그 닫기
+                await deleteVideo(documentId, videoUrl); // 삭제 작업 수행
+              },
+              child: const Text('삭제'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _showDatePicker(BuildContext context) async {
@@ -122,19 +183,28 @@ class _InterviewRecordsState extends State<InterviewRecords> {
               '녹화 시간: ${video['uploadedAt']?.toDate() ?? '시간 정보 없음'}',
               style: const TextStyle(color: Colors.grey),
             ),
-            trailing: IconButton(
-              icon: const Icon(Icons.play_arrow, color: Colors.black),
-              onPressed: () {
-                debugPrint('재생할 URL: ${video['videoUrl']}');
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ChewiePlayerScreen(
-                      videoUrl: video['videoUrl'] ?? '',
-                    ),
-                  ),
-                );
-              },
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.play_arrow, color: Colors.black),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ChewiePlayerScreen(
+                          videoUrl: video['videoUrl'] ?? '',
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.red),
+                  onPressed: () => _confirmDeletion(
+                      context, video['id'], video['videoUrl']),
+                ),
+              ],
             ),
           );
         },

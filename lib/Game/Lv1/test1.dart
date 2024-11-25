@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
@@ -21,19 +22,19 @@ class Test1Page extends StatefulWidget {
 class _Test1PageState extends State<Test1Page> {
   CameraController? _cameraController; // 카메라 컨트롤러
   bool _isRecording = false; // 녹화 상태
+  bool _isCameraInitialized = false; // 카메라 초기화 상태
   String? _videoPath; // 녹화된 파일 경로
 
   @override
   void initState() {
     super.initState();
-    _initializeCamera();
+    _initializeCamera(); // 카메라 초기화
   }
 
   /// 카메라 초기화
   Future<void> _initializeCamera() async {
     try {
       final cameras = await availableCameras();
-      // 전면 카메라가 있는지 확인
       final frontCamera = cameras.firstWhere(
             (camera) => camera.lensDirection == CameraLensDirection.front,
         orElse: () => throw Exception('전면 카메라를 찾을 수 없습니다.'),
@@ -41,8 +42,9 @@ class _Test1PageState extends State<Test1Page> {
 
       _cameraController = CameraController(frontCamera, ResolutionPreset.high);
       await _cameraController?.initialize();
-      setState(() {});
-      _startRecording(); // 초기화 후 녹화 시작
+      setState(() {
+        _isCameraInitialized = true;
+      });
     } catch (e) {
       debugPrint('카메라 초기화 오류: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -50,7 +52,6 @@ class _Test1PageState extends State<Test1Page> {
       );
     }
   }
-
 
   /// 녹화 시작
   Future<void> _startRecording() async {
@@ -64,7 +65,9 @@ class _Test1PageState extends State<Test1Page> {
     try {
       final directory = await getApplicationDocumentsDirectory();
       final videoPath =
-          '${directory.path}/video_${DateTime.now().millisecondsSinceEpoch}.mp4';
+          '${directory.path}/video_${DateTime
+          .now()
+          .millisecondsSinceEpoch}.mp4';
 
       await _cameraController?.startVideoRecording();
       setState(() {
@@ -104,15 +107,16 @@ class _Test1PageState extends State<Test1Page> {
   }
 
   /// Firebase Storage 및 Firestore 업로드
-  // Firebase Storage 및 Firestore 업로드
   Future<void> _uploadToFirebase(File file) async {
     try {
       final timestamp = DateTime.now();
       final formattedDate = DateFormat('yyyy-MM-dd').format(timestamp);
-      final title = 'Test1에서 녹화된 영상 (${formattedDate} ${timestamp.hour}:${timestamp.minute})';
+      final title = 'Test1에서 녹화된 영상 (${formattedDate} ${timestamp
+          .hour}:${timestamp.minute})';
 
       final storageRef = FirebaseStorage.instance
-          .ref('Users/${widget.userId}/videos/${timestamp.millisecondsSinceEpoch}.mp4');
+          .ref('Users/${widget.userId}/videos/${timestamp
+          .millisecondsSinceEpoch}.mp4');
 
       final uploadTask = storageRef.putFile(file);
 
@@ -121,16 +125,16 @@ class _Test1PageState extends State<Test1Page> {
 
       debugPrint('Firebase 업로드 완료: $downloadUrl');
 
-      // Firestore에 메타데이터 저장
+// Firestore에 메타데이터 저장
       await FirebaseFirestore.instance
           .collection('Users')
           .doc(widget.userId)
           .collection('videos')
           .add({
-        'videoUrl': downloadUrl,                  // Firebase Storage URL
-        'recordedDate': formattedDate,           // 녹화 날짜
+        'videoUrl': downloadUrl, // Firebase Storage URL
+        'recordedDate': formattedDate, // 녹화 날짜
         'uploadedAt': FieldValue.serverTimestamp(), // 업로드 시간
-        'title': title,                          // 비디오 제목
+        'title': title, // 비디오 제목
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -143,8 +147,6 @@ class _Test1PageState extends State<Test1Page> {
       );
     }
   }
-
-
 
   @override
   void dispose() {
@@ -160,54 +162,23 @@ class _Test1PageState extends State<Test1Page> {
     return Scaffold(
       body: Stack(
         children: [
-          // 배경 이미지
+          // 기존 배경 이미지 유지
           Positioned.fill(
             child: Image.asset(
               'assets/home3_background.png', // 배경 이미지 경로
               fit: BoxFit.cover, // 화면을 꽉 채우기
             ),
           ),
-          // 녹화 중 아이콘
-          if (_isRecording)
-            Positioned(
-              top: 40,
-              right: 20,
-              child: Icon(
-                Icons.circle,
-                color: Colors.red,
-                size: 24,
-              ),
-            ),
-          // 뒤로가기 버튼
-          Positioned(
-            top: 40,
-            left: 20,
-            child: GestureDetector(
-              onTap: () async {
-                await _stopRecordingAndUpload(); // 녹화 중단 및 업로드
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const MainNavigation()),
-                );
-              },
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.5), // 반투명 배경
-                  shape: BoxShape.circle, // 원형 버튼
-                ),
-                child: const Icon(
-                  Icons.arrow_back, // 뒤로가기 아이콘
-                  color: Colors.white, // 아이콘 색상
-                  size: 24, // 아이콘 크기
-                ),
-              ),
-            ),
-          ),
           // 캐릭터 이미지
           Positioned(
-            top: MediaQuery.of(context).size.height * 0.12, // 상단 여백 조정
-            left: MediaQuery.of(context).size.width * 0.5 - 210, // 중앙 배치
+            top: MediaQuery
+                .of(context)
+                .size
+                .height * 0.12, // 상단 여백 조정
+            left: MediaQuery
+                .of(context)
+                .size
+                .width * 0.5 - 210, // 중앙 배치
             child: Image.asset(
               'assets/character(1).png', // 캐릭터 이미지 경로
               width: 420, // 이미지 너비
@@ -216,7 +187,10 @@ class _Test1PageState extends State<Test1Page> {
           ),
           // 대화 상자
           Positioned(
-            bottom: MediaQuery.of(context).size.height * 0.13, // 하단에서 위로 올림
+            bottom: MediaQuery
+                .of(context)
+                .size
+                .height * 0.13, // 하단에서 위로 올림
             left: 20, // 좌측 여백
             right: 20, // 우측 여백
             child: Container(
@@ -241,6 +215,50 @@ class _Test1PageState extends State<Test1Page> {
                     color: Colors.black87, // 텍스트 색상
                   ),
                 ),
+              ),
+            ),
+          ),
+          // 뒤로가기 버튼
+          Positioned(
+            top: 40,
+            left: 20,
+            child: GestureDetector(
+              onTap: () async {
+                if (_isRecording) {
+                  await _stopRecordingAndUpload(); // 녹화 중단 및 업로드
+                }
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const MainNavigation()),
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5), // 반투명 배경
+                  shape: BoxShape.circle, // 원형 버튼
+                ),
+                child: const Icon(
+                  Icons.arrow_back, // 뒤로가기 아이콘
+                  color: Colors.white, // 아이콘 색상
+                  size: 24, // 아이콘 크기
+                ),
+              ),
+            ),
+          ),
+          // 녹화 버튼
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: FloatingActionButton(
+                onPressed: _isRecording
+                    ? _stopRecordingAndUpload
+                    : _startRecording,
+                backgroundColor: _isRecording ? Colors.black : Colors.white,
+                child: Icon(
+                    _isRecording ? Icons.stop : Icons.fiber_manual_record),
               ),
             ),
           ),
