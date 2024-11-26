@@ -64,15 +64,12 @@
             <string>google</string>
             <string>com.googleusercontent.apps</string>
         </array>
-
         <key>NSCameraUsageDescription</key>
-        <string>Camera access is required for photo upload.</string>
+        <string>앱에서 카메라를 사용합니다.</string>
         <key>NSMicrophoneUsageDescription</key>
-        <string>Microphone access is required for audio features.</string>
+        <string>앱에서 마이크를 사용합니다.</string>
         <key>NSPhotoLibraryUsageDescription</key>
         <string>Photo library access is required for image selection.</string>
-        <key>NSCameraUsageDescription</key>
-        <string>We need access to your camera to record videos.</string>
         <key>NSMicrophoneUsageDescription</key>
         <string>We need access to your microphone for recording audio.</string>
         <key>NSPhotoLibraryUsageDescription</key>
