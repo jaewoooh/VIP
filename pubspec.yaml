@@ -60,6 +60,7 @@ dependencies:
   flutter_sound: ^9.3.5
   permission_handler: ^10.2.0
   chewie: ^1.8.5
+  flutter_dotenv: ^5.2.1
 
 
 
