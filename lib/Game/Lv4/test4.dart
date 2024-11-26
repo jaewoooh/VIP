@@ -1,8 +1,159 @@
 import 'package:flutter/material.dart';
-import 'package:vip/main_navigation.dart';
+import 'package:camera/camera.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-class Test4Page extends StatelessWidget {
-  const Test4Page({super.key});
+import '../../main_navigation.dart';
+
+class Test1Page extends StatefulWidget {
+  final String userId;
+
+  const Test1Page({super.key, required this.userId}); // userId 필수 전달
+
+  @override
+  State<Test1Page> createState() => _Test1PageState();
+}
+
+class _Test1PageState extends State<Test1Page> {
+  CameraController? _cameraController; // 카메라 컨트롤러
+  bool _isRecording = false; // 녹화 상태
+  String? _videoPath; // 녹화된 파일 경로
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeCamera();
+  }
+
+  /// 카메라 초기화
+  Future<void> _initializeCamera() async {
+    try {
+      final cameras = await availableCameras();
+      // 전면 카메라가 있는지 확인
+      final frontCamera = cameras.firstWhere(
+            (camera) => camera.lensDirection == CameraLensDirection.front,
+        orElse: () => throw Exception('전면 카메라를 찾을 수 없습니다.'),
+      );
+
+      _cameraController = CameraController(frontCamera, ResolutionPreset.high);
+      await _cameraController?.initialize();
+      setState(() {});
+      _startRecording(); // 초기화 후 녹화 시작
+    } catch (e) {
+      debugPrint('카메라 초기화 오류: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('전면 카메라를 초기화할 수 없습니다.')),
+      );
+    }
+  }
+
+
+  /// 녹화 시작
+  Future<void> _startRecording() async {
+    if (_cameraController == null || !_cameraController!.value.isInitialized) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('카메라가 초기화되지 않았습니다.')),
+      );
+      return;
+    }
+
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final videoPath =
+          '${directory.path}/video_${DateTime.now().millisecondsSinceEpoch}.mp4';
+
+      await _cameraController?.startVideoRecording();
+      setState(() {
+        _isRecording = true;
+        _videoPath = videoPath;
+      });
+
+      debugPrint('녹화 시작: $videoPath');
+    } catch (e) {
+      debugPrint('녹화 시작 오류: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('녹화를 시작할 수 없습니다.')),
+      );
+    }
+  }
+
+  /// 녹화 중지 및 Firebase 업로드
+  Future<void> _stopRecordingAndUpload() async {
+    if (!_isRecording || _cameraController == null) return;
+
+    try {
+      final videoFile = await _cameraController?.stopVideoRecording();
+      setState(() {
+        _isRecording = false;
+      });
+
+      if (videoFile != null) {
+        debugPrint('녹화 중지: ${videoFile.path}');
+        await _uploadToFirebase(File(videoFile.path)); // Firebase에 업로드
+      }
+    } catch (e) {
+      debugPrint('녹화 중지 오류: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('녹화를 중지하는 중 문제가 발생했습니다.')),
+      );
+    }
+  }
+
+  /// Firebase Storage 및 Firestore 업로드
+  // Firebase Storage 및 Firestore 업로드
+  Future<void> _uploadToFirebase(File file) async {
+    try {
+      final timestamp = DateTime.now();
+      final formattedDate = DateFormat('yyyy-MM-dd').format(timestamp);
+      final title = 'Test4에서 녹화된 영상 (${formattedDate} ${timestamp.hour}:${timestamp.minute})';
+
+      final storageRef = FirebaseStorage.instance
+          .ref('Users/${widget.userId}/videos/${timestamp.millisecondsSinceEpoch}.mp4');
+
+      final uploadTask = storageRef.putFile(file);
+
+      final snapshot = await uploadTask.whenComplete(() {});
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+
+      debugPrint('Firebase 업로드 완료: $downloadUrl');
+
+      // Firestore에 메타데이터 저장
+      await FirebaseFirestore.instance
+          .collection('Users')
+          .doc(widget.userId)
+          .collection('videos')
+          .add({
+        'videoUrl': downloadUrl,                  // Firebase Storage URL
+        'recordedDate': formattedDate,           // 녹화 날짜
+        'uploadedAt': FieldValue.serverTimestamp(), // 업로드 시간
+        'title': title,                          // 비디오 제목
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('영상 업로드 완료: $title')),
+      );
+    } catch (e) {
+      debugPrint('Firebase 업로드 오류: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('영상을 저장하는 중 문제가 발생했습니다.')),
+      );
+    }
+  }
+
+
+
+  @override
+  void dispose() {
+    if (_isRecording) {
+      _stopRecordingAndUpload(); // 화면 종료 시 녹화 중단 및 업로드
+    }
+    _cameraController?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,13 +167,25 @@ class Test4Page extends StatelessWidget {
               fit: BoxFit.cover, // 화면을 꽉 채우기
             ),
           ),
+          // 녹화 중 아이콘
+          if (_isRecording)
+            Positioned(
+              top: 40,
+              right: 20,
+              child: Icon(
+                Icons.circle,
+                color: Colors.red,
+                size: 24,
+              ),
+            ),
           // 뒤로가기 버튼
           Positioned(
-            top: 40, // 화면 상단에서 약간 아래
-            left: 20, // 화면 좌측 여백
+            top: 40,
+            left: 20,
             child: GestureDetector(
-              onTap: () {
-                Navigator.push(
+              onTap: () async {
+                await _stopRecordingAndUpload(); // 녹화 중단 및 업로드
+                Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => const MainNavigation()),
                 );
@@ -78,28 +241,6 @@ class Test4Page extends StatelessWidget {
                     color: Colors.black87, // 텍스트 색상
                   ),
                 ),
-              ),
-            ),
-          ),
-          // 마이크 버튼
-          Positioned(
-            bottom: 35, // 하단에서 약간 위로
-            right: MediaQuery.of(context).size.width * 0.5 - 35, // 중앙 정렬
-            child: ElevatedButton(
-              onPressed: () {
-                // 마이크 버튼 클릭 시 동작
-                
-              },
-              style: ElevatedButton.styleFrom(
-                shape: const CircleBorder(), // 원형 버튼
-                padding: const EdgeInsets.all(15), // 버튼 크기
-                backgroundColor: const Color.fromARGB(255, 128, 128, 128), // 버튼 색상
-                elevation: 5, // 버튼 그림자
-              ),
-              child: const Icon(
-                Icons.mic, // 마이크 아이콘
-                color: Colors.white, // 아이콘 색상
-                size: 30, // 아이콘 크기
               ),
             ),
           ),

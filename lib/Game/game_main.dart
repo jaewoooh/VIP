@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:vip/Game/Lv1/leve1.dart';
 import 'package:vip/Game/Setting/game_setting1.dart';
+
+import 'Lv1/level1.dart';
 
 class GameMain1 extends StatefulWidget {
   const GameMain1({super.key});

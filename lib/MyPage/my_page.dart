@@ -1,8 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:vip/Login&Register/login.dart'; // 로그인 화면이 있는 파일 import 필요
+import '../Game/score.dart';
+import '../Login&Register/login_service.dart';
+import '../Login&Register/user_provider.dart';
 import 'interview_records.dart';
 import 'favorites.dart';
+import 'package:provider/provider.dart';
 
 class MyPageScreen extends StatefulWidget {
   const MyPageScreen({super.key});
@@ -13,30 +18,63 @@ class MyPageScreen extends StatefulWidget {
 
 class _MyPageScreenState extends State<MyPageScreen> {
   final List<Map<String, String>> _favoriteItems = [];
+  User? _user;
+  String _nickname = '';
+  String _profileImageUrl = '';
+  String _newNickname = '';
 
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
   // FirebaseAuth 인스턴스
-  final User? _user = FirebaseAuth.instance.currentUser;
-
+  @override
+  void initState() {
+    super.initState();
+    _initializeUser();
+  }
   void _addToFavorites(String title, String subtitle) {
     setState(() {
       _favoriteItems.add({'title': title, 'subtitle': subtitle});
     });
   }
-
+  Future<void> _initializeUser() async {
+    User? currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      setState(() {
+        _user = currentUser;
+      });
+      await _handleUserInFirestore();
+    }
+  }
+  Future<void> _handleUserInFirestore() async {
+    await handleUserInFirestore((nickname, profileImageUrl) {
+      setState(() {
+        _nickname = nickname;
+        _profileImageUrl = profileImageUrl;
+      });
+    });
+  }
   // 로그아웃 메서드
   Future<void> _logout(BuildContext context) async {
     try {
       await FirebaseAuth.instance.signOut(); // Firebase 로그아웃
+      if (await _googleSignIn.isSignedIn()) {
+        await _googleSignIn.signOut();
+      }
+      Provider.of<UserProvider>(context, listen: false).clearUser(); // UserProvider 초기화
+
+      // 로그인 화면으로 이동
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const Login()), // 로그인 화면으로 이동
+        MaterialPageRoute(builder: (context) => const MainNavigation()), // 메인 화면으로 이동
       );
+
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("로그아웃 중 오류 발생: $e")),
       );
     }
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -138,7 +176,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                       Expanded(
                         child: TabBarView(
                           children: [
-                            InterviewRecords(onFavoriteAdded: _addToFavorites),
+                            InterviewRecords(userId: _user?.uid ?? ''), // userId 전달
                             Favorites(favoriteItems: _favoriteItems),
                           ],
                         ),
@@ -147,6 +185,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   ),
                 ),
               ),
+
             ],
           ),
         ),
