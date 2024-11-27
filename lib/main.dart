@@ -14,7 +14,7 @@ Future<void> main() async {
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   // 초기화 작업
   await Future.delayed(const Duration(seconds: 2));
-  // 스플래시 화면 제거
+  // 스플래시 화면 제거[
   FlutterNativeSplash.remove();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
