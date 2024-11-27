@@ -10,6 +10,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../main_navigation.dart';
+import 'package:permission_handler/permission_handler.dart';
+
+import 'package:permission_handler/permission_handler.dart';
+
 
 class Test1Page extends StatefulWidget {
   final String userId;
@@ -51,22 +55,54 @@ class _Test1PageState extends State<Test1Page> {
   }
 
   Future<void> _initializeCamera() async {
+    await _requestCameraPermission(); // 카메라 권한 요청
     try {
       final cameras = await availableCameras();
+      for (var camera in cameras) {
+        debugPrint('카메라 이름: ${camera.name}, 방향: ${camera.lensDirection}');
+      }
+
       final frontCamera = cameras.firstWhere(
-        (camera) => camera.lensDirection == CameraLensDirection.front,
+            (camera) => camera.lensDirection == CameraLensDirection.front,
         orElse: () => throw Exception('전면 카메라를 찾을 수 없습니다.'),
       );
-      _cameraController = CameraController(frontCamera, ResolutionPreset.high);
+
+
+      if (frontCamera == null) {
+        _showSnackBar('전면 카메라가 없습니다. 후면 카메라를 사용합니다.');
+        final backCamera = cameras.firstWhere(
+              (camera) => camera.lensDirection == CameraLensDirection.back,
+          orElse: () => throw Exception('후면 카메라를 찾을 수 없습니다.'),
+        );
+        _cameraController = CameraController(backCamera, ResolutionPreset.high);
+      } else {
+        _cameraController = CameraController(frontCamera, ResolutionPreset.high);
+      }
+
       await _cameraController?.initialize();
       setState(() {
         _isCameraInitialized = true;
       });
     } catch (e) {
       debugPrint('카메라 초기화 오류: $e');
-      _showSnackBar('전면 카메라를 초기화할 수 없습니다.');
+      _showSnackBar('카메라를 초기화할 수 없습니다. 오류: $e');
     }
   }
+
+  Future<void> _requestCameraPermission() async {
+    final status = await Permission.camera.request();
+
+    if (status.isGranted) {
+      debugPrint('카메라 권한이 허용되었습니다.');
+    } else if (status.isDenied) {
+      debugPrint('카메라 권한이 거부되었습니다.');
+      _showSnackBar('카메라 권한이 필요합니다. 설정에서 권한을 허용해주세요.');
+    } else if (status.isPermanentlyDenied) {
+      debugPrint('카메라 권한이 영구적으로 거부되었습니다.');
+      openAppSettings(); // 설정 화면 열기
+    }
+  }
+
 
   Future<void> _startRecording() async {
     if (_cameraController == null || !_cameraController!.value.isInitialized) {
@@ -136,6 +172,7 @@ class _Test1PageState extends State<Test1Page> {
     }
   }
 
+
   Future<void> fetchInterviewQuestion() async {
     if (!mounted) return;
 
@@ -196,8 +233,17 @@ class _Test1PageState extends State<Test1Page> {
     }
   }
 
+
   void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        action: SnackBarAction(
+          label: '설정으로 이동',
+          onPressed: openAppSettings, // 설정 화면 열기
+        ),
+      ),
+    );
   }
 
   void _showDialog(String title, String content) {

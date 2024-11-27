@@ -44,11 +44,37 @@ class _InterviewRecordsState extends State<InterviewRecords> {
             'videoUrl': data['videoUrl'],
             'recordedDate': data['recordedDate'],
             'uploadedAt': data['uploadedAt'],
+            'isFavorite': data['isFavorite'] ?? false, // 기본값은 false
+
           };
         }).toList();
       });
     } catch (e) {
       debugPrint('Firestore 데이터 가져오기 오류: $e');
+    }
+  }
+  Future<void> _toggleFavorite(String documentId) async {
+    try {
+      final index = _videos.indexWhere((video) => video['id'] == documentId);
+      if (index == -1) return;
+
+      // 현재 상태 반전
+      final isFavorite = !_videos[index]['isFavorite'];
+
+      // Firestore에 업데이트
+      await FirebaseFirestore.instance
+          .collection('Users')
+          .doc(widget.userId)
+          .collection('videos')
+          .doc(documentId)
+          .update({'isFavorite': isFavorite});
+
+      // UI 업데이트
+      setState(() {
+        _videos[index]['isFavorite'] = isFavorite;
+      });
+    } catch (e) {
+      debugPrint('즐겨찾기 상태 업데이트 중 오류 발생: $e');
     }
   }
 
@@ -174,7 +200,7 @@ class _InterviewRecordsState extends State<InterviewRecords> {
         itemBuilder: (context, index) {
           final video = _videos[index];
           return ListTile(
-            leading: const Icon(Icons.video_file, color: Colors.orange),
+            leading: const Icon(Icons.video_library, color: Colors.orange),
             title: Text(
               video['recordedDate'] ?? '기록된 날짜 없음',
               style: const TextStyle(color: Colors.black),
@@ -186,6 +212,16 @@ class _InterviewRecordsState extends State<InterviewRecords> {
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
+                IconButton(
+                  icon: Icon(
+                    video['isFavorite'] ? Icons.favorite : Icons.favorite_outline, // 즐겨찾기 상태에 따라 아이콘 변경
+                    color: video['isFavorite'] ? Colors.red : Colors.grey,
+                  ),
+                  onPressed: () {
+                    _toggleFavorite(video['id']);
+                  },
+                ),
+
                 IconButton(
                   icon: const Icon(Icons.play_arrow, color: Colors.black),
                   onPressed: () {
@@ -204,6 +240,7 @@ class _InterviewRecordsState extends State<InterviewRecords> {
                   onPressed: () => _confirmDeletion(
                       context, video['id'], video['videoUrl']),
                 ),
+
               ],
             ),
           );
